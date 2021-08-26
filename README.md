@@ -3,17 +3,17 @@
 </div>
 
 # Sobre o projeto
-
+01:02:38
+[Create PubSub Server](https://www.youtube.com/watch?v=yyREnTgRTQ0&list=WL&index=1&t=3123s)
 # Criado utilizando
 [uuid](github.com/google/uuid)
-[gorilla-websocket]()
+[gorilla-websocket](https://github.com/gorilla/websocket)
 # Como utilizar
 
 Rode o server
 ```
 go run main.go
 ```
-
 
 # Licença
 Este projeto está sob a licença MIT
