@@ -3,11 +3,10 @@
 </div>
 
 # Sobre o projeto
-01:02:38
-[Create PubSub Server](https://www.youtube.com/watch?v=yyREnTgRTQ0&list=WL&index=1&t=3123s)
+Projeto criado com o intuito de aprender mais sobre web sockets no Go. Criado seguindo a aula [Create PubSub Server](https://www.youtube.com/watch?v=yyREnTgRTQ0&list=WL&index=1&t=3123s)
 # Criado utilizando
-[uuid](github.com/google/uuid)
-[gorilla-websocket](https://github.com/gorilla/websocket)
+* [uuid](github.com/google/uuid)
+* [gorilla-websocket](https://github.com/gorilla/websocket)
 # Como utilizar
 
 Rode o server
