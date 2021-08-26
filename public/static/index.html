@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Document</title>
+    <script>
+        var ws = new WebSocket("ws://localhost:3000/ws");
+
+        ws.onopen = (msg) => console.log("Connection stablish");
+
+        ws.onmessage = (msg) => console.log("New message from server: " + msg.data);
+
+        ws.onclose = (_) => console.log("Connection finished");
+
+        window.ws = ws;
+    </script>
+</head>
+<body>
+    
+</body>
+</html>
