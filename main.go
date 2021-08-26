@@ -43,6 +43,11 @@ func handler(writer http.ResponseWriter, request *http.Request) {
 		messageType, payload, err := connection.ReadMessage()
 		if err != nil {
 			log.Println("💀 Oops... something went wrong")
+			connectionList.RemoveClient(client)
+			// On error the client will be disconnected
+			log.Println("================================")
+			log.Printf("CLIENTS: %d  SUBSCRIPTIONS: %d\n", len(connectionList.Clients), len(connectionList.Subscriptions))
+			log.Println("================================")
 			return
 		}
 

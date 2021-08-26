@@ -8,8 +8,9 @@ import (
 )
 
 var (
-	PUBLISH   = "publish"
-	SUBSCRIBE = "subscribe"
+	PUBLISH     = "publish"
+	SUBSCRIBE   = "subscribe"
+	UNSUBSCRIBE = "unsubscribe"
 )
 
 type PubSub struct {
@@ -33,7 +34,7 @@ type Subscription struct {
 	Client *Client
 }
 
-func (connectionList *PubSub) GetSubscription(topic string, client *Client) []Subscription {
+func (connectionList *PubSub) GetSubscriptions(topic string, client *Client) []Subscription {
 	var subscriptionList []Subscription
 
 	for _, subscription := range connectionList.Subscriptions {
@@ -51,9 +52,19 @@ func (connectionList *PubSub) GetSubscription(topic string, client *Client) []Su
 	return subscriptionList
 }
 
+func (connectionList *PubSub) Publish(topic string, message []byte, excludeClient *Client) {
+	subscriptions := connectionList.GetSubscriptions(topic, nil)
+
+	for _, sub := range subscriptions {
+
+		fmt.Printf("✅ Publishing to client id %s message is %s\n", sub.Client.ID, message)
+		sub.Client.Send(message)
+	}
+}
+
 func (connectionList *PubSub) Subscribe(client *Client, topic string) *PubSub {
 
-	clientSubs := connectionList.GetSubscription(topic, client)
+	clientSubs := connectionList.GetSubscriptions(topic, client)
 	if len(clientSubs) > 0 {
 		// The client has already been registered in this topic
 		return connectionList
@@ -79,6 +90,42 @@ func (connectionList *PubSub) AddClient(client Client) *PubSub {
 	return connectionList
 }
 
+func (client *Client) Send(message []byte) error {
+	err := client.Connection.WriteMessage(1, message)
+
+	return err
+}
+
+func (connectionList *PubSub) Unsubscribe(client *Client, topic string) *PubSub {
+	for index, sub := range connectionList.Subscriptions {
+		if sub.Client.ID == client.ID && sub.Topic == topic {
+			// found client subscription
+
+			connectionList.Subscriptions = append(connectionList.Subscriptions[:index], connectionList.Subscriptions[index+1:]...)
+		}
+	}
+
+	return connectionList
+}
+
+func (connectionList *PubSub) RemoveClient(client Client) *PubSub {
+	// remove all client subscriptions
+	for index, sub := range connectionList.Subscriptions {
+		if client.ID == sub.Client.ID {
+			connectionList.Subscriptions = append(connectionList.Subscriptions[:index], connectionList.Subscriptions[index+1:]...)
+		}
+	}
+
+	// remove client
+	for index, iclient := range connectionList.Clients {
+		if iclient.ID == client.ID {
+			connectionList.Clients = append(connectionList.Clients[:index], connectionList.Clients[index+1:]...)
+		}
+	}
+
+	return connectionList
+}
+
 func (connectionList *PubSub) HandleReceiveMessage(client Client, messageType int, payload []byte) *PubSub {
 	msg := Message{}
 
@@ -90,13 +137,20 @@ func (connectionList *PubSub) HandleReceiveMessage(client Client, messageType in
 
 	switch msg.Action {
 	case PUBLISH:
-		fmt.Println("This is publish new message")
+		connectionList.Publish(msg.Topic, msg.Message, nil)
+		fmt.Println("✅ New PUBLISH to topic: ", msg.Topic)
+		fmt.Println("== Total of subscriptions: ", len(connectionList.Subscriptions))
 		break
 
 	case SUBSCRIBE:
 		connectionList.Subscribe(&client, msg.Topic)
-		fmt.Println("✅ New Subscribe to topic: ", msg.Topic)
+		fmt.Println("✅ New SUBSCRIBE to topic: ", msg.Topic)
 		fmt.Println("== Total of subscriptions: ", len(connectionList.Subscriptions))
+		break
+
+	case UNSUBSCRIBE:
+		connectionList.Unsubscribe(&client, msg.Topic)
+		fmt.Printf("✅ Client %s UNSUBSCRIBED of topic %s \n", client.ID, msg.Topic)
 		break
 
 	default:
